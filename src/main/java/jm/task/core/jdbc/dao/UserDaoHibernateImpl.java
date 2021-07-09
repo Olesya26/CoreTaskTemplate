@@ -2,6 +2,7 @@ package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
-    SessionFactory sessionFactory = Util.getConnectorHibernate();
+    SessionFactory sessionFactory = Util.getSessionFactory();
 
     public UserDaoHibernateImpl() {
 
@@ -33,7 +34,12 @@ public class UserDaoHibernateImpl implements UserDao {
             session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при создании таблицы");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -49,7 +55,12 @@ public class UserDaoHibernateImpl implements UserDao {
             session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при удалении таблицы");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -58,15 +69,19 @@ public class UserDaoHibernateImpl implements UserDao {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            User user = new User(name, lastName, age);
-            session.save(user);
+            session.save(new User(name, lastName, age));
             session.getTransaction().commit();
         } catch (Exception e) {
             System.err.printf("Ошибка при добавлении User - %s в таблицу\n", name);
-            session.getTransaction().commit();
+            session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при добавлении User в таблицу");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -75,15 +90,21 @@ public class UserDaoHibernateImpl implements UserDao {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            User user = session.get(User.class, id);
-            session.delete(user);
+            session.createQuery("delete from User where id = :id ")
+                    .setParameter("id", id)
+                    .executeUpdate();
             session.getTransaction().commit();
         } catch (Exception e) {
             System.err.printf("Ошибка при удалении User с id: %d\n", id);
             session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при удаления User");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -93,14 +114,19 @@ public class UserDaoHibernateImpl implements UserDao {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            usersList = session.createQuery("FROM User",User.class).getResultList();
+            usersList = session.createQuery("FROM User", User.class).getResultList();
             session.getTransaction().commit();
         } catch (Exception e) {
             System.err.println("Ошибка при получении все Users из таблицы");
             session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при получении всех Users из таблицы");
+                e.printStackTrace();
+            }
         }
         return usersList;
     }
@@ -117,7 +143,12 @@ public class UserDaoHibernateImpl implements UserDao {
             session.getTransaction().rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            try {
+                session.close();
+            } catch (HibernateException e) {
+                System.err.println("Ошибка во процессе закрытии соединения при очищении таблицы");
+                e.printStackTrace();
+            }
         }
     }
 }

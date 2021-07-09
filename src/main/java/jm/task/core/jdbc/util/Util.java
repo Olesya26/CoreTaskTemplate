@@ -22,7 +22,7 @@ public class Util {
     private final static String URL = "jdbc:mysql://localhost:3306/mysql";
     private final static String DIALECT = "org.hibernate.dialect.MySQL8Dialect";
 
-    public static SessionFactory getConnectorHibernate() {
+    public static SessionFactory getSessionFactory() {
         Configuration configuration = new Configuration();
         Properties properties = new Properties();
         properties.put(Environment.DRIVER, DRIVER_NAME);
